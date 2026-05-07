@@ -1,0 +1,11 @@
+venv/
+runs/
+__pycache__/
+*.pt
+*.jpg
+*.png
+*.jpeg
+images/
+labels/
+labels_backup/
+Annotations/
