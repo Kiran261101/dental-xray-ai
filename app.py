@@ -28,3 +28,5 @@ if uploaded_file is not None:
     st.image(result_image, caption="Detection Result", width="stretch")
 
     os.remove(temp_path)
+
+    print("test")
