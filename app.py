@@ -9,7 +9,7 @@ st.title("Dental X-ray Model Comparison")
 
 # Load both models
 old_model = YOLO("runs/detect/train6/weights/best.pt")
-new_model = YOLO("runs/train/dental_xray_improved/weights/best.pt")
+new_model = YOLO("runs/detect/train7/weights/best.pt")
 
 uploaded_file = st.file_uploader(
     "Upload Dental X-ray",
