@@ -45,9 +45,9 @@ if uploaded_file is not None:
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("Old Model - train6")
+        st.subheader("Old Model ")
         st.image(old_image)
 
     with col2:
-        st.subheader("New Model - dental_xray_improved")
+        st.subheader("New Model ")
         st.image(new_image)
