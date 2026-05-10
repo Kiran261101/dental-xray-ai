@@ -6,7 +6,7 @@ import os
 
 st.title("Dental X-ray Detection")
 
-model = YOLO("runs/detect/train6/weights/best.pt")
+model = YOLO("runs/train/dental_xray_improved/weights/best.pt")
 
 uploaded_file = st.file_uploader("Upload Dental X-ray", type=["jpg", "jpeg", "png"])
 
