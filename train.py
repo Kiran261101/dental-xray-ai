@@ -96,9 +96,24 @@ def train_model(
         imgsz=imgsz,
         batch=batch,
         device=device,
+        
         lr0=lr0,
         lrf=lrf,
         optimizer=optimizer,
+        
+        hsv_h=0.0,
+        hsv_s=0.0,
+        hsv_v=0.05,
+        degrees=5.0,
+        translate=0.05,
+        scale=0.15,
+        shear=0.0,
+        perspective=0.0,
+        flipud=0.0,
+        fliplr=0.5,
+        mosaic=0.3,
+        mixup=0.0,
+        copy_paste=0.0,
         patience=patience,
         cache=cache,
         augment=augment,
@@ -106,7 +121,8 @@ def train_model(
         project=project,
         name=name,
         exist_ok=True,
-    )
+)
+    
 
     logger.info('Training completed successfully. Results saved to %s/%s', project, name)
 
@@ -115,13 +131,13 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description='Train a YOLO model for dental x-ray detection.')
     parser.add_argument('--data', default='data.yaml', help='Path to dataset YAML file.')
     parser.add_argument('--model', default='yolo26n.pt', help='Pretrained model weights path.')
-    parser.add_argument('--epochs', type=int, default=100, help='Number of training epochs.')
-    parser.add_argument('--imgsz', type=int, default=640, help='Training image size.')
+    parser.add_argument('--epochs', type=int, default=150, help='Number of training epochs.')
+    parser.add_argument('--imgsz', type=int, default=832, help='Training image size.')
     parser.add_argument('--batch', type=int, default=16, help='Batch size for training.')
     parser.add_argument('--device', default=get_default_device(), help='Device to use for training.')
-    parser.add_argument('--lr0', type=float, default=0.01, help='Initial learning rate.')
+    parser.add_argument('--lr0', type=float, default=0.001, help='Initial learning rate.')
     parser.add_argument('--lrf', type=float, default=0.01, help='Final learning rate factor (lrf).')
-    parser.add_argument('--optimizer', default='SGD', choices=['SGD', 'Adam', 'AdamW'], help='Optimizer type.')
+    parser.add_argument('--optimizer', default='AdamW', choices=['SGD', 'Adam', 'AdamW'], help='Optimizer type.')
     parser.add_argument('--patience', type=int, default=30, help='Early stopping patience.')
     parser.add_argument('--cache', default='disk', choices=['ram', 'disk', 'none'], help='Dataset caching mode.')
     parser.add_argument('--augment', action='store_true', default=True, help='Enable built-in augmentation.')
