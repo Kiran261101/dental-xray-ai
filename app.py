@@ -10,11 +10,11 @@ st.title("Dental X-ray Model Comparison")
 # LOAD MODELS
 # =========================
 
-old_model = YOLO("runs/detect/train8/weights/best.pt")
+old_model = YOLO("models/old_model.pt")
 
-strong_model = YOLO("runs/detect/strong_model/weights/best.pt")
+strong_model = YOLO("models/strong_model.pt")
 
-weak_model = YOLO("runs/detect/weak_model/weights/best.pt")
+weak_model = YOLO("models/weak_model.pt")
 
 # =========================
 # FILE UPLOAD
