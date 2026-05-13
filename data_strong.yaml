@@ -1,0 +1,12 @@
+train: dataset_strong/images/train
+val: dataset_strong/images/val
+
+nc: 6
+
+names:
+  0: CROWDING
+  1: CROWNS
+  2: ROTATED
+  3: RCT TOOTH
+  4: IMPACTED TOOTH
+  5: SUPRAERUPTED TOOTH

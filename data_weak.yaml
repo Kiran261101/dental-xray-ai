@@ -1,0 +1,15 @@
+train: dataset_weak/images/train
+val: dataset_weak/images/val
+
+nc: 9
+
+names:
+  0: BONE LOSS
+  1: ATTRITION
+  2: DENTAL CARIES
+  3: MISSING TOOTH
+  4: SPACING
+  5: PERIAPICAL INFECTION
+  6: ERUPTING TOOTH
+  7: ROOT STUMP
+  8: RESTORATIONS
