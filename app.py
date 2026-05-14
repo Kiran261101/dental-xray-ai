@@ -1,92 +1,156 @@
 import streamlit as st
 from ultralytics import YOLO
 from PIL import Image
-import tempfile
-import cv2
 import numpy as np
+import cv2
+import tempfile
+from collections import Counter
 
-# PAGE SETTINGS
-st.set_page_config(layout="wide")
-
-# TITLE
-st.title("Dental X-ray Model Comparison")
-
-# LOAD MODELS
-old_model = YOLO("models/old_model.pt")
-strong_model = YOLO("models/strong_model.pt")
-weak_model = YOLO("models/weak_model.pt")
-
-# FILE UPLOADER
-uploaded_file = st.file_uploader(
-    "Upload Dental X-ray",
-    type=["jpg", "jpeg", "png"]
+# ---------------- PAGE CONFIG ----------------
+st.set_page_config(
+    page_title="Dental Xray AI Detection",
+    layout="wide"
 )
 
+# ---------------- TITLE ----------------
+st.title("Dental Xray AI Detection Model")
+
+# ---------------- CLASS COLORS ----------------
+CLASS_COLORS = {
+    "CROWDING": (255, 120, 1200),
+    "CROWNS": (120, 255, 255),
+    "ROTATED": (220, 120, 255),
+    "RCT TOOTH": (120, 255, 180),
+    "IMPACTED TOOTH": (255, 220, 120),
+    "SUPRA ERUPTED TOOTH": (255, 170, 120),
+
+    "BONE LOSS": (120, 180, 255),
+    "ATTRITION": (180, 120, 255),
+    "DENTAL CARIES": (245, 245, 245),
+    "MISSING TOOTH": (120, 150, 255),
+    "SPACING": (200, 255, 120),
+    "PERIAPICAL INFECTION": (255, 120, 180),
+    "ERUPTING TOOTH": (180, 150, 255),
+    "ROOT STUMP": (220, 220, 120),
+    "RESTORATIONS": (120, 255, 120),
+}
+
+# ---------------- LOAD MODELS ----------------
+@st.cache_resource
+def load_models():
+    strong_model = YOLO("models/strong_model.pt")
+    weak_model = YOLO("models/weak_model.pt")
+    return strong_model, weak_model
+
+strong_model, weak_model = load_models()
+
+# ---------------- FILE UPLOADER ----------------
+uploaded_file = st.file_uploader(
+    "Upload Dental Xray",
+    type=["png", "jpg", "jpeg"]
+)
+
+# ---------------- PROCESS ----------------
 if uploaded_file is not None:
 
-    # OPEN IMAGE
     image = Image.open(uploaded_file).convert("RGB")
+    image_np = np.array(image)
 
-    # SHOW RAW IMAGE
     st.subheader("Uploaded Raw Image")
-    st.image(image, use_container_width=True)
-
-    # SAVE TEMP IMAGE
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
-        image.save(tmp.name)
-        temp_path = tmp.name
-
-    # ---------------- OLD MODEL ----------------
-    old_results = old_model.predict(
-        source=temp_path,
-        conf=0.2
+    st.image(
+        image_np,
+        use_container_width=True
     )
 
-    old_image = old_results[0].plot(
-        line_width=2,
-        font_size=8
-    )
+    # Save temp image
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp_file:
+        temp_path = temp_file.name
+        image.save(temp_path)
 
-    # ---------------- STRONG MODEL ----------------
+    # ---------------- PREDICTIONS ----------------
     strong_results = strong_model.predict(
         source=temp_path,
-        conf=0.2
+        conf=0.20,
+        verbose=False
     )
 
-    # ---------------- WEAK MODEL ----------------
     weak_results = weak_model.predict(
         source=temp_path,
-        conf=0.2
+        conf=0.20,
+        verbose=False
     )
 
-    # CREATE COMBINED IMAGE
-    combined_image = np.array(image).copy()
+    # ---------------- FINAL IMAGE ----------------
+    final_img = image_np.copy()
 
-    # DRAW STRONG MODEL DETECTIONS
-    strong_drawn = strong_results[0].plot(
-        img=combined_image,
-        line_width=2,
-        font_size=8
+    detected_classes = []
+
+    def draw_predictions(results, model):
+
+        global final_img
+
+        for box in results[0].boxes:
+
+            cls_id = int(box.cls[0])
+            conf = float(box.conf[0])
+
+            class_name = model.names[cls_id].upper()
+
+            detected_classes.append(class_name)
+
+            x1, y1, x2, y2 = map(int, box.xyxy[0])
+
+            color = CLASS_COLORS.get(class_name, (255, 255, 255))
+
+           # DRAW THINNER BOX
+            cv2.rectangle(
+                final_img,
+                (x1, y1),
+                (x2, y2),
+                color,
+                1
+            )
+
+            # SIMPLE YOLO STYLE LABEL
+            label = f"{class_name} {conf:.2f}"
+
+            cv2.putText(
+                final_img,
+                label,
+                (x1, max(y1 - 5, 15)),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.42,
+                color,
+                1,
+                cv2.LINE_AA
+            )
+
+    # DRAW BOTH MODELS
+    draw_predictions(strong_results, strong_model)
+    draw_predictions(weak_results, weak_model)
+
+    # ---------------- SHOW FINAL IMAGE ----------------
+    st.subheader("Final Model")
+
+    st.image(
+        final_img,
+        use_container_width=True
     )
 
-    # DRAW WEAK MODEL DETECTIONS ON SAME IMAGE
-    combined_final = weak_results[0].plot(
-        img=strong_drawn,
-        line_width=2,
-        font_size=8
-    )
+    # ---------------- DETECTION SUMMARY ----------------
+    st.markdown("---")
+    st.subheader("Detection Summary")
 
-    # CONVERT COLORS
-    old_image = cv2.cvtColor(old_image, cv2.COLOR_BGR2RGB)
-    combined_final = cv2.cvtColor(combined_final, cv2.COLOR_BGR2RGB)
+    class_counter = Counter(detected_classes)
 
-    # DISPLAY SIDE BY SIDE
-    col1, col2 = st.columns(2)
+    if class_counter:
 
-    with col1:
-        st.subheader("Old Model")
-        st.image(old_image, use_container_width=True)
+        cols = st.columns(3)
 
-    with col2:
-        st.subheader("New Combined Model")
-        st.image(combined_final, use_container_width=True)
+        for idx, (cls, count) in enumerate(sorted(class_counter.items())):
+
+            with cols[idx % 3]:
+                st.success(f"{cls} : {count}")
+
+    else:
+        st.warning("No detections found.")
