@@ -3,8 +3,8 @@ import yaml
 from collections import Counter
 
 # ---- PATHS (CHANGE IF NEEDED) ----
-data_yaml_path = "data.yaml"
-label_paths = ["labels/train", "labels/val"]
+data_yaml_path = "data_weak.yaml"
+label_paths = ["dataset_weak/labels/train", "dataset_weak/labels/val"]
 
 # ---- LOAD CLASS NAMES ----
 with open(data_yaml_path, "r") as f:
